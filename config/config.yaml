@@ -1,0 +1,129 @@
+# Genome(s) to process, specified by (internal) id's from the 'genomes' dict below.
+#ids: ['ss11', 'mm39']
+ids: ['hg38', 'chm13', 'mm39', 'mm10', 'mfa5', 'MFA1912RKSv2', 'rn6', 'rn7', 'ss11', 'oc2']
+
+# Output directory. If several genomes are processed, then the output will be in subdirectories named by the elements of "ids"
+outdir: 'output'
+
+# Specifications of the genomes. The required parameter 'id' is an internal label for the genome; it must be unique.
+genomes:
+    - id: 'chm13'
+      organism: 'Homo sapiens' 
+      taxid: 9606,
+      ncbi_org: 'Homo_sapiens'
+      ncbi_assembly_name: 'T2T-CHM13v2.0'
+      ncbi_annotation_release: 110 # current release is not permitted
+    - id: 'hg38'
+      organism: 'Homo sapiens'
+      taxid: 9606
+      ensembl_release: 110
+      ensembl_name: 'Homo_sapiens.GRCh38'
+      ensembl_org: 'homo_sapiens'
+      ncbi_org: 'Homo_sapiens'
+      ncbi_assembly_name: 'GRCh38.p14'
+      ncbi_annotation_release: 110 # current release is not permitted
+      gencode_org: 'Gencode_human'
+      gencode_release: 44
+    - id: 'mm10'
+      organism: 'Mus musculus'
+      taxid: 10090
+      ensembl_release: 102 # 102 is the maximum value
+      ensembl_name: 'Mus_musculus.GRCm38'
+      ensembl_org: 'mus_musculus'
+      ncbi_org: 'Mus_musculus'
+      ncbi_assembly_name: 'GRCm38.p6'
+      ncbi_annotation_release: 108 # current release is not permitted
+      gencode_org: 'Gencode_mouse'
+      gencode_release: 'M25' # M25 is the maximum value
+    - id: 'mm39'
+      organism: 'Mus musculus'
+      taxid: 10090
+      ensembl_release: 110
+      ensembl_name: 'Mus_musculus.GRCm39'
+      ensembl_org: 'mus_musculus'
+      ncbi_org: 'Mus_musculus'
+      ncbi_assembly_name: 'GRCm39'
+      ncbi_annotation_release: 109 # current release is not permitted
+      gencode_org: 'Gencode_mouse'
+      gencode_release: 'M33'
+    - id: 'mfa5'
+      organism: 'Macaca fascicularis'
+      taxid: 9541
+      ensembl_release: 102 # 102 is the maximum value
+      ensembl_name: 'Macaca_fascicularis.Macaca_fascicularis_5.0'
+      ensembl_org: 'macaca_fascicularis'
+      ncbi_org: 'Macaca_fascicularis'
+      ncbi_assembly_name: 'Macaca_fascicularis_5.0'
+      ncbi_annotation_release: 101
+    - id: 'mfa6'
+      organism: 'Macaca fascicularis'
+      taxid: 9541
+      ensembl_release: 110
+      ensembl_name: 'Macaca_fascicularis.Macaca_fascicularis_6.0'
+      ensembl_org: 'macaca_fascicularis'
+    - id: 'MFA1912RKSv2'
+      organism: 'Macaca fascicularis'
+      taxid: 9541
+      ncbi_org: 'Macaca_fascicularis'
+      ncbi_assembly_name: 'MFA1912RKSv2'
+      ncbi_annotation_release: 102
+    - id: 'rn6'
+      organism: 'Rattus norvegicus'
+      taxid: 10116
+      ensembl_release: 104 # 104 is the maximum value
+      ensembl_name: 'Rattus_norvegicus.Rnor_6.0'
+      ensembl_org: 'rattus_norvegicus'
+      ncbi_org: 'Rattus_norvegicus'
+      ncbi_assembly_name: 'Rnor_6.0'
+      ncbi_annotation_release: 106
+    - id: 'rn7'
+      organism: 'Rattus norvegicus'
+      taxid: 10116
+      ensembl_release: 110
+      ensembl_name: 'Rattus_norvegicus.mRatBN7.2'
+      ensembl_org: 'rattus_norvegicus'
+      ncbi_org: 'Rattus_norvegicus'
+      ncbi_assembly_name: 'mRatBN7.2'
+      ncbi_annotation_release: 108
+    - id: 'ss11'
+      organism: 'Sus scrofa'
+      taxid: 9823
+      ensembl_release: 110
+      ensembl_name: 'Sus_scrofa.Sscrofa11.1'
+      ensembl_org: 'sus_scrofa'
+      ncbi_org: 'Sus_scrofa'
+      ncbi_assembly_name: 'Sscrofa11.1'
+      ncbi_annotation_release: 106
+    - id: 'oc2'
+      organism: 'Oryctolagus cuniculus'
+      taxid: 9986
+      ensembl_release: 110
+      ensembl_name: 'Oryctolagus_cuniculus.OryCun2.0'
+      ensembl_org: 'oryctolagus_cuniculus'
+      ncbi_org: 'Oryctolagus_cuniculus'
+      ncbi_assembly_name: 'OryCun2.0'
+      ncbi_annotation_release: 102
+    - id: 'oc3'
+      organism: 'Oryctolagus cuniculus'
+      taxid: 9986
+      ncbi_org: 'Oryctolagus_cuniculus'
+      ncbi_assembly_name: 'UM_NZW_1.0'
+      ncbi_annotation_release: 103
+
+
+# Here, specify the STAR software version and the URI to the Singularity image
+# If desired, one can generate several STAR indices versions
+star:
+  - version: 2.7.10b
+    image: https://depot.galaxyproject.org/singularity/star%3A2.7.10b--h9ee0642_0
+#  - version: 2.7.10a
+#    image: https://depot.galaxyproject.org/singularity/star%3A2.7.10a--h9ee0642_0
+#  - version: 2.7.9a
+#    image: https://depot.galaxyproject.org/singularity/star%3A2.7.9a--h9ee0642_0
+#  - version: 2.7.3a
+#    image: https://depot.galaxyproject.org/singularity/star:2.7.3a--0
+
+
+# Number of threads and memory for the STAR index generation step
+star_threads: 12
+star_mem_mb: 50000
