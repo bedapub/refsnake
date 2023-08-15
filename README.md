@@ -13,10 +13,18 @@ In this project, we download fasta, gtf, and gff3 files from reputable sources s
 
 ## Installation and Usage
 
-First, edit the parameters in the configuration, `config.yaml`, file (see section below).
+First, clone the repository and edit the parameters in the configuration, `config.yaml`, file as necessary (see section below).
 Then, run Snakemake locally or submit the workflow to the cluster queue (see [Snakemake documentation](https://snakemake.readthedocs.io/en/stable/executing/cluster.html))
 
 ```bash
+# clone repo
+git clone https://github.com/bedapub/refsnake.git \
+  && cd refsnake
+  
+# edit the config
+cat config/config.yaml
+
+# set token for Singularity image
 export SINGULARITY_DOCKER_USERNAME=<user>
 export SINGULARITY_DOCKER_PASSWORD=<token>
 
@@ -36,7 +44,7 @@ snakemake --snakefile Snakefile --configfile config/config.yaml \
 
 Ensure to use the Singularity feature. A token for GitHub read package is required for pulling Singularity images.
 
-Another example, one genome 'hg38' config parameter specified on the command line
+Another example to process only one genome, e.g. 'hg38'. The config parameter is specified directly via the command line
 
 ```bash
 export SINGULARITY_DOCKER_USERNAME=<user>
@@ -62,12 +70,13 @@ ids: ['hg38', 'chm13', 'mm39', 'mm10', 'mfa5', 'MFA1912RKSv2', 'rn6', 'rn7', 'ss
 outdir: 'output'
 ```
 
-Optional parameters to edit are `star version` and `star image` (Singularity) as well as `star_threads` and `star_mem_mb` (threads and memory for STAR).
+Optional parameters that can be adjusted are `star version` and `star image` (Singularity) as well as `star_threads` and `star_mem_mb`, threads and memory for STAR indices generation.
 
 
 ## Output files
 
-For example, all output files for human hg38 listed below.
+Output files comprise genomes and gene annotations files. 
+For example, all output files for human "hg38" listed below.
 Note that for certain species, not all annotations are available and therefore, the corresponding files are of size zero.
 
 ```
@@ -195,4 +204,3 @@ singularity run docker://dpokidov/imagemagick:latest rulegraph.png -resize 1000x
 - Improve sorting of chromosomes and contigs
 - Merge rules "gencode_utr_part1" and "gencode_utr_part2"
 - Consider more "local rules"
-
