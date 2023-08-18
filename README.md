@@ -1,7 +1,7 @@
 # refsnake - Build Reference Genomes and Annotations 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-This Snakemake workflow generates reference genomes and annotation files for various organisms, including human, mouse, rat, cynomolgus monkey, pig, and rabbit, by retrieving data from RefSeq/NCBI, Ensembl, and Gencode. The resulting files are specifically designed for RNASeq data analysis, such as bulk RNASeq.
+This Snakemake workflow generates reference genomes and annotation files for various organisms, including human, mouse, rat, cynomolgus monkey, pig, and rabbit, by retrieving data from RefSeq/NCBI, Ensembl, and Gencode. The resulting files are specifically designed for RNASeq data analysis, such as bulk RNASeq (see [bksnake](https://github.com/bedapub/bksnake)).
 
 
 # Table of Contents
