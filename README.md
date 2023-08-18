@@ -10,6 +10,10 @@ In this project, we download fasta, gtf, and gff3 files from reputable sources s
 
 <img src="resources/rulegraph.png" alt="drawing" style="width:900px;"/>
 
+## Prerequisites
+
+git, snakemake (version >=7.16.1), singularity must be in $PATH.
+
 
 ## Installation and Usage
 
