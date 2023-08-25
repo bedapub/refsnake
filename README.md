@@ -245,7 +245,6 @@ singularity run docker://dpokidov/imagemagick:latest rulegraph.png -resize 1000x
 - Improve sorting of chromosomes and contigs
 - Merge rules "gencode_utr_part1" and "gencode_utr_part2"
 - Consider more "local rules"
-- maybe remove numbers at the end of gene ids for the gencode annotations, e.g. "ENSG00000000003.16"
 
 
 ## Contributing ([top](#top)) <a name="contributing"></a>
