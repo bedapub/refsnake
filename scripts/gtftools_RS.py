@@ -282,7 +282,7 @@ def merge_exon(GTFfile,merged_exon_file='',chroms=map(str,range(1,23))+['X','Y']
 		table=line.split('\t')
 		if line[0] != '#' and table[0] in chroms:  # skip comment line
 			if table[2] == 'exon':
-				print(line)
+				#print(line)
 				gene=line.split('gene_id')[1].split('"')[1]
 				iexon=(table[0],int(table[3])-1,int(table[4]),table[6])  # gtf to bed coordination
 				if gene in exon:

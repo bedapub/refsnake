@@ -64,14 +64,14 @@ export SINGULARITY_DOCKER_PASSWORD=<token>
 # local execution
 snakemake --snakefile Snakefile --configfile config/config.yaml \
     --use-singularity --singularity-args "--contain --cleanenv" \
-    --cores 8
+    --latency-wait 10 --cores 8 \
 
 # cluster submission
 PROFILE=<path to cluster profile>
 
 snakemake --snakefile Snakefile --configfile config/config.yaml \
     --use-singularity --singularity-args "--contain --cleanenv" \
-    --jobs 100 --profile ${PROFILE}
+    --report 
     
 ```
 
@@ -87,10 +87,15 @@ PROFILE=<path to cluster profile>
 
 snakemake --snakefile Snakefile --configfile config/config.yaml \
     --use-singularity --singularity-args "--contain --cleanenv"   \
-    --jobs 100 --profile ${PROFILE} \
+    --latency-wait 10 --jobs 100 --profile ${PROFILE} \
     --config outdir=genomes ids="['hg38']" 
 ```
 
+After successful completion of the workflow, create Snakmake html report
+
+```bash
+snakemake --snakefile Snakefile --configfile config/config.yaml --report
+```
 
 ## Configuration ([top](#top)) <a name="configuration"></a>
 
