@@ -3,3 +3,6 @@ Untitled.ipynb
 *output*
 *test*
 __pycache__
+.snakemake/
+logs/
+report.html

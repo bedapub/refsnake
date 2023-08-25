@@ -64,14 +64,14 @@ export SINGULARITY_DOCKER_PASSWORD=<token>
 # local execution
 snakemake --snakefile Snakefile --configfile config/config.yaml \
     --use-singularity --singularity-args "--contain --cleanenv" \
-    --cores 8
+    --latency-wait 10 --cores 8 \
 
 # cluster submission
 PROFILE=<path to cluster profile>
 
 snakemake --snakefile Snakefile --configfile config/config.yaml \
     --use-singularity --singularity-args "--contain --cleanenv" \
-    --jobs 100 --profile ${PROFILE}
+    --report 
     
 ```
 
@@ -87,10 +87,15 @@ PROFILE=<path to cluster profile>
 
 snakemake --snakefile Snakefile --configfile config/config.yaml \
     --use-singularity --singularity-args "--contain --cleanenv"   \
-    --jobs 100 --profile ${PROFILE} \
+    --latency-wait 10 --jobs 100 --profile ${PROFILE} \
     --config outdir=genomes ids="['hg38']" 
 ```
 
+After successful completion of the workflow, create Snakmake html report
+
+```bash
+snakemake --snakefile Snakefile --configfile config/config.yaml --report
+```
 
 ## Configuration ([top](#top)) <a name="configuration"></a>
 
@@ -240,7 +245,6 @@ singularity run docker://dpokidov/imagemagick:latest rulegraph.png -resize 1000x
 - Improve sorting of chromosomes and contigs
 - Merge rules "gencode_utr_part1" and "gencode_utr_part2"
 - Consider more "local rules"
-- maybe remove numbers at the end of gene ids for the gencode annotations, e.g. "ENSG00000000003.16"
 
 
 ## Contributing ([top](#top)) <a name="contributing"></a>

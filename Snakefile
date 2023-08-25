@@ -11,14 +11,15 @@ export SINGULARITY_DOCKER_PASSWORD=<token>
 # local execution
 snakemake --snakefile Snakefile --configfile config/config.yaml \
     --use-singularity --singularity-args "--contain --cleanenv" \
-    --cores 8
+    --latency-wait 10 --cores 8
+
 
 # cluster submission
 PROFILE=<path to cluster profile>
 
 snakemake --snakefile Snakefile --configfile config/config.yaml \
     --use-singularity --singularity-args "--contain --cleanenv" \
-    --jobs 100 --profile ${PROFILE}
+    --latency-wait 10 --jobs 100 --profile ${PROFILE}
     
 
 - How to create the rulegraph file
@@ -270,6 +271,14 @@ ALL_GENCODE_IDS = get_all_species_with_gencode()   # ['hg38', 'mm10', 'mm39']
 gencode_ids = [elem for elem in config['ids'] if elem in ALL_GENCODE_IDS]
 
 
+# ------------------------------------------------------------------------------
+"""
+Declare local rules, ie not submitted to the cluster
+"""
+localrules: all, stats
+
+
+
 
 # ------------------------------------------------------------------------------
 rule all:
@@ -306,6 +315,9 @@ rule all:
         sorted_tbi = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.sorted.{fmt}.gz.tbi'), id=config['ids'], db=DB, fmt='gtf'),
         #
         star_dir = expand(os.path.join(OUTDIR, '{id}', 'star_{v}'), id=config['ids'], v=star_versions),
+        #
+        genome_stats = os.path.join(OUTDIR, 'genome_stats.csv'),
+        annotation_stats = os.path.join(OUTDIR, 'annotation_stats.csv')
   
 
 
@@ -569,21 +581,24 @@ rule download_fasta_files:
                     && wget -O {output.dir}/genome.fa.gz {params.chm13_prefix}_genomic.fna.gz \
                     && scripts/split_fasta.sh {output.dir}/genome.fa.gz {output.dir} \
                     && rm -f {output.dir}/genome.fa.gz \
-                    && grep '^# Assembly name: ' {output.dir}/assembly_report.txt > {output.version}
+                    && grep '^# Assembly name: ' {output.dir}/assembly_report.txt \
+                        | sed 's/# Assembly name: //g' > {output.version}
             elif [ '{wildcards.id}' == 'oc3' ]; then
                 mkdir -p {output} \
                      && wget -O {output.dir}/assembly_report.txt {params.oc3_prefix}_assembly_report.txt \
                      && wget -O {output.dir}/genome.fa.gz {params.oc3_prefix}_genomic.fna.gz \
                      && scripts/split_fasta.sh {output.dir}/genome.fa.gz {output.dir} \
                      && rm -f {output.dir}/genome.fa.gz \
-                     && grep '^# Assembly name: ' {output.dir}/assembly_report.txt > {output.version}
+                     && grep '^# Assembly name: ' {output.dir}/assembly_report.txt \
+                        | sed 's/# Assembly name: //g' > {output.version}
             elif [ '{wildcards.id}' == 'MFA1912RKSv2' ]; then
                 mkdir -p {output.dir} \
                      && wget -O {output.dir}/assembly_report.txt {params.MFA1912RKSv2_prefix}_assembly_report.txt \
                      && wget -O {output.dir}/genome.fa.gz {params.MFA1912RKSv2_prefix}_genomic.fna.gz \
                      && scripts/split_fasta.sh {output.dir}/genome.fa.gz {output.dir} \
                      && rm -f {output.dir}/genome.fa.gz \
-                     && grep '^# Assembly name: ' {output.dir}/assembly_report.txt > {output.version}
+                     && grep '^# Assembly name: ' {output.dir}/assembly_report.txt \
+                        | sed 's/# Assembly name: //g' > {output.version}
             else
                 mkdir -p {output.dir} && touch {output.version}
             fi
@@ -764,6 +779,9 @@ rule format_annotation:
             merged_df['attributes'] = merged_df['attributes'].str.replace('transcript_id "";', '', regex=True)
             merged_df['attributes'] = merged_df['attributes'].str.replace('  ', ' ', regex=True)
  
+            # Remove numbers in Ensembl IDs (e.g. "ENSG00000000003.16" in gencode)
+            merged_df['attributes'] = merged_df['attributes'].str.replace(r'(ENS\w+)\.\d+', r'\1', regex=True)
+
             # Special cleaning and sorting for gtf files
             if wildcards.fmt == 'gtf':
                 import scripts.sort_and_clean_gtf as gtf
@@ -1396,3 +1414,115 @@ mkdir -p ${OUTDIR}/bowtie2 && ml purge && ml Bowtie2 && bowtie2-build --threads 
 Create BWA index without GTF file
 mkdir -p ${OUTDIR}/bwa && cp ${OUTDIR}/genome.fa ${OUTDIR}/bwa/ && cd bwa && ml BWA && bwa index genome.fa && rm genome.fa
 """
+
+
+# ----------------------------------------------------------------------------
+"""
+Collect some statistics
+
+        #refFlat = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.refFlat'), id=config['ids'], db=DB, fmt='gtf'),
+        #loci = expand(os.path.join(OUTDIR, '{id}', 'gtf', '{db}', '{db}.loci.txt'), id=config['ids'], db=DB, fmt='gtf'),
+        #sorted = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.sorted.{fmt}.gz'), id=config['ids'], db=DB, fmt='gtf'),
+        #sorted_tbi = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.sorted.{fmt}.gz.tbi'), id=config['ids'], db=DB, fmt='gtf'),
+
+"""
+rule stats:
+    input:
+        version = expand(os.path.join(OUTDIR, '{id}', 'fasta/genome.version'), id=config['ids']),
+        chrom_size = expand(os.path.join(OUTDIR, '{id}', 'fasta/genome.chrom.sizes'), id=config['ids']),
+        rRNA_invervals = expand(os.path.join(OUTDIR, '{id}', 'fasta/genome.rRNA_intervals'), id=config['ids']),
+        annot = expand(os.path.join(OUTDIR, '{id}', 'gtf', '{db}', '{db}.exons.annot'), id=config['ids'], db=DB, fmt='gtf'),
+    output:
+        genome = os.path.join(OUTDIR, 'genome_stats.csv'),
+        annotation = os.path.join(OUTDIR, 'annotation_stats.csv')
+    params:
+        ids = config['ids']
+    run: 
+        import csv
+        data = pd.DataFrame(index=params.ids)
+        
+        # Genome statistics
+        # Version information
+        files = input.version
+        col_name = 'Version'
+        for file_path in files:
+            genome_id = file_path.split('/')[1]
+            with open(file_path, 'r') as file:
+                first_line = file.readline().strip() 
+                data.loc[genome_id, col_name] = first_line    
+        
+        # Numbers of sequences
+        files = input.chrom_size
+        col_name = 'Sequences'
+        col_name_len = 'Length Mb'
+        for file_path in files:
+            count = 0
+            length = 0.
+            genome_id = file_path.split('/')[1]
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as file:
+                    for line in file:
+                        count += 1
+                        length += float(line.split('\t')[1])*1.e-6
+            data.loc[genome_id, col_name] = count
+            data.loc[genome_id, col_name_len] = length
+        data[col_name] = data[col_name].astype(int)
+        data[col_name_len] = data[col_name_len].astype(int)
+        
+        # ribosomal RNA intervals
+        files = input.rRNA_invervals
+        col_name = 'rRNA intervals'
+        for file_path in files:
+            count = 0
+            genome_id = file_path.split('/')[1]
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as file:
+                    for line in file:
+                        if not line.startswith('@SQ'):
+                            count += 1
+            data.loc[genome_id, col_name] = count
+        data[col_name] = data[col_name].astype(int)
+                
+        # Write table to file
+        data.to_csv(output.genome, mode='a', sep=',',
+            index=True, header=True, quoting=csv.QUOTE_NONE)
+
+
+        # Annotation statistics
+        df = pd.DataFrame(index=params.ids)
+
+        # Numbers of genes
+        files = input.annot
+        for file_path in files:
+            count = 0
+            loc = 0
+            genome_id = file_path.split('/')[1]
+            source = file_path.split('/')[3]
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as file:
+                    for line in file:
+                        count += 1
+                        if line.split('\t')[1].startswith('LOC'):
+                            loc += 1
+            col_name = 'Features '+source
+            df.loc[genome_id, col_name] = count
+            col_name = 'LOC genes '+source
+            df.loc[genome_id, col_name] = loc
+
+        # Write table to file
+        df = df.astype(int)
+        df.to_csv(output.annotation, mode='a', sep=',',
+            index=True, header=True, quoting=csv.QUOTE_NONE)
+
+
+# ----------------------------------------------------------------------------
+"""
+Snakemake Report
+by using the snakemake option --report
+"""
+report: 'report/description.rst'
+
+# Add some useful Snakemake variables for the "report" to the config dict
+# so that they can be used in the file "workflow/report/description.rst"
+#config['TOTAL_NUMBER_OF_SAMPLES'] = len(sample_ids)
+
