@@ -1394,6 +1394,7 @@ rule star:
         mem_mb = config['star_mem_mb']
     shell:  
         """
+	rm -rf {params.tmp}
         singularity run {params.image} STAR --runThreadN {threads} \
             --runMode genomeGenerate \
             --genomeDir {output[0]} \
