@@ -1,6 +1,5 @@
 # Genome(s) to process, specified by (internal) id's from the 'genomes' dict below.
-#ids: ['ss11', 'mm39']
-ids: ['hg38', 'chm13', 'mm39', 'mm10', 'mfa5', 'MFA1912RKSv2', 'rn6', 'rn7', 'ss11', 'oc2']
+ids: ['hg38', 'chm13', 'mm39', 'mm10', 'mfa5', 'MFA1912RKSv2', 'rn6', 'rn7', 'ss11', 'oc2', 'Vero_WHO_p1.0']
 
 # Output directory. If several genomes are processed, then the output will be in subdirectories named by the elements of "ids"
 outdir: 'output'
@@ -13,6 +12,8 @@ genomes:
       ncbi_org: 'Homo_sapiens'
       ncbi_assembly_name: 'T2T-CHM13v2.0'
       ncbi_annotation_release: 110 # current release is not permitted
+      refseq_assembly_accession: 'GCF_009914755.1'
+      db: ['refseq']
     - id: 'hg38'
       organism: 'Homo sapiens'
       taxid: 9606
@@ -22,8 +23,10 @@ genomes:
       ncbi_org: 'Homo_sapiens'
       ncbi_assembly_name: 'GRCh38.p14'
       ncbi_annotation_release: 110 # current release is not permitted
+      refseq_assembly_accession: 'GCF_000001405.40'
       gencode_org: 'Gencode_human'
       gencode_release: 44
+      db: ['refseq', 'ensembl','gencode']
     - id: 'mm10'
       organism: 'Mus musculus'
       taxid: 10090
@@ -33,8 +36,10 @@ genomes:
       ncbi_org: 'Mus_musculus'
       ncbi_assembly_name: 'GRCm38.p6'
       ncbi_annotation_release: 108 # current release is not permitted
+      refseq_assembly_accession: 'GCF_000001635.26'
       gencode_org: 'Gencode_mouse'
       gencode_release: 'M25' # M25 is the maximum value
+      db: ['refseq', 'ensembl', 'gencode']
     - id: 'mm39'
       organism: 'Mus musculus'
       taxid: 10090
@@ -44,8 +49,10 @@ genomes:
       ncbi_org: 'Mus_musculus'
       ncbi_assembly_name: 'GRCm39'
       ncbi_annotation_release: 109 # current release is not permitted
+      refseq_assembly_accession: 'GCF_000001635.27'
       gencode_org: 'Gencode_mouse'
       gencode_release: 'M33'
+      db: ['refseq', 'ensembl', 'gencode']
     - id: 'mfa5'
       organism: 'Macaca fascicularis'
       taxid: 9541
@@ -55,18 +62,23 @@ genomes:
       ncbi_org: 'Macaca_fascicularis'
       ncbi_assembly_name: 'Macaca_fascicularis_5.0'
       ncbi_annotation_release: 101
+      refseq_assembly_accession: 'GCF_000364345.1'
+      db: ['refseq', 'ensembl']
     - id: 'mfa6'
       organism: 'Macaca fascicularis'
       taxid: 9541
       ensembl_release: 110
       ensembl_name: 'Macaca_fascicularis.Macaca_fascicularis_6.0'
       ensembl_org: 'macaca_fascicularis'
+      db: ['ensembl']
     - id: 'MFA1912RKSv2'
       organism: 'Macaca fascicularis'
       taxid: 9541
       ncbi_org: 'Macaca_fascicularis'
       ncbi_assembly_name: 'MFA1912RKSv2'
       ncbi_annotation_release: 102
+      refseq_assembly_accession: 'GCF_012559485.2'
+      db: ['refseq']
     - id: 'rn6'
       organism: 'Rattus norvegicus'
       taxid: 10116
@@ -76,6 +88,8 @@ genomes:
       ncbi_org: 'Rattus_norvegicus'
       ncbi_assembly_name: 'Rnor_6.0'
       ncbi_annotation_release: 106
+      refseq_assembly_accession: 'GCF_000001895.5'
+      db: ['refseq', 'ensembl']
     - id: 'rn7'
       organism: 'Rattus norvegicus'
       taxid: 10116
@@ -85,6 +99,8 @@ genomes:
       ncbi_org: 'Rattus_norvegicus'
       ncbi_assembly_name: 'mRatBN7.2'
       ncbi_annotation_release: 108
+      refseq_assembly_accession: 'GCF_015227675.2'
+      db: ['refseq', 'ensembl']
     - id: 'ss11'
       organism: 'Sus scrofa'
       taxid: 9823
@@ -94,6 +110,8 @@ genomes:
       ncbi_org: 'Sus_scrofa'
       ncbi_assembly_name: 'Sscrofa11.1'
       ncbi_annotation_release: 106
+      refseq_assembly_accession: 'GCF_000003025.6'
+      db: ['refseq', 'ensembl']
     - id: 'oc2'
       organism: 'Oryctolagus cuniculus'
       taxid: 9986
@@ -103,12 +121,25 @@ genomes:
       ncbi_org: 'Oryctolagus_cuniculus'
       ncbi_assembly_name: 'OryCun2.0'
       ncbi_annotation_release: 102
+      refseq_assembly_accession: 'GCF_000003625.3'
+      db: ['refseq', 'ensembl']
     - id: 'oc3'
       organism: 'Oryctolagus cuniculus'
       taxid: 9986
       ncbi_org: 'Oryctolagus_cuniculus'
       ncbi_assembly_name: 'UM_NZW_1.0'
       ncbi_annotation_release: 103
+      refseq_assembly_accession: 'GCF_009806435.1'
+      db: ['refseq']
+    - id: 'Vero_WHO_p1.0'
+      organism: 'Chlorocebus sabaeus'
+      taxid: 60711
+      ncbi_org: 'Chlorocebus_sabaeus'
+      ncbi_assembly_name: 'Vero_WHO_p1.0'
+      ncbi_annotation_release: 102
+      refseq_assembly_accession: 'GCF_015252025.1'
+      db: ['refseq']
+      
 
 
 # Here, specify the STAR software version and the URI to the Singularity image

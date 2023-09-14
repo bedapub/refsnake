@@ -32,18 +32,21 @@ output_header=${tmpfile}.header
 output_refseq=${tmpfile}.refseq
 output_ensembl=${tmpfile}.ensembl
 
+rm -f ${output_ensembl} && touch ${output_ensembl}
+rm -f ${output_refseq} && touch ${output_refseq}
+
+
 # Output chromosome size as SAM header
 perl -lane 'print "\@SQ\tSN:$F[0]\tLN:$F[1]"' ${input_sizes} > ${output_header}
   
 # Output intervals for rRNA transcripts
 # From Ensembl
 file_size=$(stat -c "%s" ${input_ensembl})
-if [ ${file_size} -eq 0 ]; then
-  touch ${output_ensembl}
-else
+if [ ${file_size} -gt 0 ]; then
+  echo "Parse Ensembl annotations from file ${input_ensembl}" >&2
   chroms="$(grep -v '^#' ${input_ensembl} | cut -f1 | sort | uniq)"
-  rm -f ${output_ensembl}
-  for i in ${chroms}; do  
+  for i in ${chroms}; do 
+    echo "Sequence: $i" >&2
     grep -w ${i} ${input_ensembl} | awk 'BEGIN{FS="\t"}{if ($3=="rRNA"){print $0}}' | cut -f1,4,5,7,9 \
       | perl -lane '/Name=([^"]+)/ or die "no transcript_id on $."; print join "\t", (@F[0,1,2,3], $1)' \
       | cut -f1 -d\; | sort -k1V -k2n -k3n >> ${output_ensembl}
@@ -52,12 +55,11 @@ fi
   
 # From RefSeq
 file_size=$(stat -c "%s" ${input_refseq})
-if [ ${file_size} -eq 0 ]; then
-  touch ${output_refseq}
-else
-  chrom="$(grep -v '^#' ${input_refseq} | cut -f1 | sort | uniq)"
-  rm -f ${output_refseq}
+if [ ${file_size} -gt 0 ]; then
+  echo "Parse RefSeq annotations from file ${input_refseq}" >&2
+  chroms="$(grep -v '^#' ${input_refseq} | cut -f1 | sort | uniq)"
   for i in ${chroms}; do
+    echo "Sequence: $i" >&2
     grep -w ${i} ${input_refseq} | awk 'BEGIN{FS="\t"}{if ($3=="rRNA"){print $0}}' | cut -f1,4,5,7,9 \
       | perl -lane '/gene=([^"]+)/ or die "no transcript_id on $."; print join "\t", (@F[0,1,2,3], $1)' \
       | cut -f1 -d\; | sort -k1V -k2n -k3n >> ${output_refseq}

@@ -62,14 +62,14 @@ export SINGULARITY_DOCKER_USERNAME=<user>
 export SINGULARITY_DOCKER_PASSWORD=<token>
 
 # local execution
-snakemake --snakefile Snakefile --configfile config/config.yaml \
+snakemake --snakefile workflow/Snakefile --configfile config/config.yaml \
     --use-singularity --singularity-args "--contain --cleanenv" \
     --latency-wait 10 --cores 8 \
 
 # cluster submission
 PROFILE=<path to cluster profile>
 
-snakemake --snakefile Snakefile --configfile config/config.yaml \
+snakemake --snakefile workflow/Snakefile --configfile config/config.yaml \
     --use-singularity --singularity-args "--contain --cleanenv" \
     --report 
     
@@ -85,7 +85,7 @@ export SINGULARITY_DOCKER_PASSWORD=<token>
 
 PROFILE=<path to cluster profile>
 
-snakemake --snakefile Snakefile --configfile config/config.yaml \
+snakemake --snakefile workflow/Snakefile --configfile config/config.yaml \
     --use-singularity --singularity-args "--contain --cleanenv"   \
     --latency-wait 10 --jobs 100 --profile ${PROFILE} \
     --config outdir=genomes ids="['hg38']" 
@@ -94,7 +94,7 @@ snakemake --snakefile Snakefile --configfile config/config.yaml \
 After successful completion of the workflow, create Snakmake html report
 
 ```bash
-snakemake --snakefile Snakefile --configfile config/config.yaml --report
+snakemake --snakefile workflow/Snakefile --configfile config/config.yaml --report
 ```
 
 ## Configuration ([top](#top)) <a name="configuration"></a>
@@ -104,7 +104,7 @@ Parameters to specify:
 - `outdir`: path to the output directory
 
 ```
-ids: ['hg38', 'chm13', 'mm39', 'mm10', 'mfa5', 'MFA1912RKSv2', 'rn6', 'rn7', 'ss11', 'oc2']
+ids: ['hg38', 'chm13', 'mm39', 'mm10', 'mfa5', 'MFA1912RKSv2', 'rn6', 'rn7', 'ss11', 'oc2', 'Vero_WHO_p1.0']
 
 outdir: 'output'
 ```

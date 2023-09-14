@@ -52,8 +52,6 @@ NCBI_FTP = 'ftp://ftp.ncbi.nih.gov'
 ENSEMBL_FTP = 'ftp://ftp.ensembl.org/pub'
 GENCODE_FTP = 'ftp://ftp.ebi.ac.uk/pub/databases/gencode'
 OUTDIR = config['outdir']
-DB = ['refseq', 'ensembl', 'gencode']
-FMT = ['gtf', 'gff3']
 MAX_LINES = 0 # maximum number of lines from a gtf/gff3 file to process, if set to 0 then all lines are process. this is only used for debugging/development purposes
 MISSING_VALUE = 'None'
 star_dict = config['star']
@@ -265,6 +263,17 @@ def get_star_image(version_to_find):
 
 # ------------------------------------------------------------------------------
 """
+Get for species id the available annotations sources (ie refseq, ensmebl, gencode)
+"""            
+def get_dbs(id): 
+    res = get_subkey_from_config(config['genomes'], id, 'db')
+    #print('\nget_dbs results for '+id+':', file=sys.stderr)
+    #print(res, file=sys.stderr)
+    return res
+
+
+# ------------------------------------------------------------------------------
+"""
 Some more global variables
 """
 ALL_GENCODE_IDS = get_all_species_with_gencode()   # ['hg38', 'mm10', 'mm39']
@@ -283,42 +292,29 @@ localrules: all, stats
 # ------------------------------------------------------------------------------
 rule all:
     input:
-        #exons = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.exons.{fmt}'), id=config['ids'], db=DB, fmt='gtf'),
-        #exons_gz = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.exons.{fmt}.gz'), id=config['ids'], db=DB, fmt='gtf'),
+        refFlat = [os.path.join(OUTDIR, id, 'gtf', db, f'{db}.refFlat') for id in config['ids'] for db in get_dbs(id)],
         #
-        #geneLength = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.exons.geneLength'), id=config['ids'], db=DB, fmt='gtf'),
-        #geneLength_gz = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.exons.geneLength.gz'), id=config['ids'], db=DB, fmt='gtf'),
-        #
-        #annot = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.exons.annot'), id=config['ids'], db=DB, fmt='gtf'),
-        #annot_gz = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.exons.annot.gz'), id=config['ids'], db=DB, fmt='gtf'),
-        #
-        refFlat = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.refFlat'), id=config['ids'], db=DB, fmt='gtf'),
-        #
-        #version = expand(os.path.join(OUTDIR, '{id}', 'fasta/genome.version'), id=config['ids']),
         fai = expand(os.path.join(OUTDIR, '{id}', 'fasta/genome.fa.fai'), id=config['ids']),
         fai_gz = expand(os.path.join(OUTDIR, '{id}', 'fasta/genome.fa.gz.fai'), id=config['ids']),
-        #
-        #chrom_size = expand(os.path.join(OUTDIR, '{id}', 'fasta/genome.chrom.sizes'), id=config['ids']),
         #
         rRNA_invervals = expand(os.path.join(OUTDIR, '{id}', 'fasta/genome.rRNA_intervals'), id=config['ids']),
         #
         premRNA_bed = expand(os.path.join(OUTDIR, '{id}', 'gff3/gencode/gencode.genes.bed'), id=gencode_ids),
         premRNA_fa = expand(os.path.join(OUTDIR, '{id}', 'premRNA/gencode/gencode.premRNA.fasta'), id=gencode_ids),
         #
-        #utr_bed = expand(os.path.join(OUTDIR, '{id}', '3utr/gencode/gencode.3utr.bed'), id=gencode_ids),
         utr_fa = expand(os.path.join(OUTDIR, '{id}', '3utr/gencode/gencode.3utr.fa'), id=gencode_ids),
         utr_ann = expand(os.path.join(OUTDIR, '{id}', '3utr/gencode/gencode.3utr.annotation.txt'), id=gencode_ids),
         #
-        loci = expand(os.path.join(OUTDIR, '{id}', 'gtf', '{db}', '{db}.loci.txt'), id=config['ids'], db=DB, fmt='gtf'),
+        loci = [os.path.join(OUTDIR, id, 'gtf', db, f'{db}.loci.txt') for id in config['ids'] for db in get_dbs(id)],
         #
-        sorted = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.sorted.{fmt}.gz'), id=config['ids'], db=DB, fmt='gtf'),
-        sorted_tbi = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.sorted.{fmt}.gz.tbi'), id=config['ids'], db=DB, fmt='gtf'),
+        sorted = [os.path.join(OUTDIR, id, 'gtf', db, f'{db}.sorted.gtf.gz') for id in config['ids'] for db in get_dbs(id)],
+        sorted_tbi = [os.path.join(OUTDIR, id, 'gtf', db, f'{db}.sorted.gtf.gz.tbi') for id in config['ids'] for db in get_dbs(id)],
         #
-        star_dir = expand(os.path.join(OUTDIR, '{id}', 'star_{v}'), id=config['ids'], v=star_versions),
+        star_dir = [os.path.join(OUTDIR, id, f'star_{v}', db) for id in config['ids'] for db in get_dbs(id) for v in star_versions],
         #
         genome_stats = os.path.join(OUTDIR, 'genome_stats.csv'),
-        annotation_stats = os.path.join(OUTDIR, 'annotation_stats.csv')
-  
+        annotation_stats = os.path.join(OUTDIR, 'annotation_stats.csv'),
+        dag = os.path.join(OUTDIR, 'rulegraph.png'),  
 
 
 # ------------------------------------------------------------------------------
@@ -355,6 +351,7 @@ rule download_ncbi_annotation:
     shell:
         """
         if [ {params.ncbi_annotation_release} == "None" ]; then
+            echo "Rule download_ncbi_annotation: no NCBI annotations for {wildcards.id}"
             touch {output.readme}
             touch {output.report}
             touch {output.gtf}
@@ -385,49 +382,13 @@ rule download_ncbi_annotation:
                     | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%26/\&/g' | gzip -c > {output.gff}        
         fi
         """
-               
-
-# ------------------------------------------------------------------------------
-"""
-Download also gene information files for entrezgene, refseq, and uniprot.
-
-This rule is not needed.
-"""
-rule download_ensembl_gene_information:
-    output:
-        info_entrez = temp(os.path.join(OUTDIR, '{id}', 'ensembl_entrez.tsv.gz')),
-        info_refseq = temp(os.path.join(OUTDIR, '{id}', 'ensembl_refseq.tsv.gz')),
-        info_uniprot = temp(os.path.join(OUTDIR, '{id}', 'ensembl_uniprot.tsv.gz'))
-    params:
-        ensembl_org = lambda wildcards: get_subkey_from_config(config['genomes'], wildcards.id, 'ensembl_org'),
-        ensembl_name = lambda wildcards: get_subkey_from_config(config['genomes'], wildcards.id, 'ensembl_name'),
-        ensembl_release = lambda wildcards: get_subkey_from_config(config['genomes'], wildcards.id, 'ensembl_release'),
-    threads: 1
-    resources:
-        mem_mb = 1000
-    shell:
-        """
-        if [ {params.ensembl_release} == "None" ]; then
-            touch {output.info_entrez}
-            touch {output.info_refseq}
-            touch {output.info_uniprot}
-        else 
-            wget -O {output.info_entrez} \
-                {ENSEMBL_FTP}/release-{params.ensembl_release}/tsv/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.entrez.tsv.gz
-
-            wget -O {output.info_refseq} \
-                {ENSEMBL_FTP}/release-{params.ensembl_release}/tsv/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.refseq.tsv.gz
-            
-            wget -O {output.info_uniprot} \
-                {ENSEMBL_FTP}/release-{params.ensembl_release}/tsv/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.uniprot.tsv.gz
-        fi                
-        """        
-        
+                    
         
 # ------------------------------------------------------------------------------
 """
 Download GTF and GFF files from Ensembl
 Also download GFF/GTF files with chromosomes only, ie <prefix>.gff3|gtf.gz and<prefix>.chr.gff3|gtf.gz
+
 """
 rule download_ensembl_annotation:
     output:
@@ -446,6 +407,7 @@ rule download_ensembl_annotation:
     shell:
         """
         if [ {params.ensembl_release} == "None" ]; then
+            echo "Rule download_ensembl_annotation: no Ensembl annotations for {wildcards.id}"
             touch {output.gtf}
             touch {output.gff}
             touch {output.gtf_chr}
@@ -523,9 +485,10 @@ rule download_gencode_annotation:
     shell:
         """
         if [ {params.gencode_release} == "None" ]; then
-            touch {output.gtf}
-            touch {output.gff}
-            touch {output.tmp}
+            echo "Rule download_gencode_annotation: no Gencode annotations for {wildcards.id}"
+            #touch {output.gtf}
+            #touch {output.gff}
+            #touch {output.tmp}
         else 
             wget -O {output.tmp} \
                 {GENCODE_FTP}/{params.gencode_org}/release_{params.gencode_release}/gencode.v{params.gencode_release}.annotation.gtf.gz \
@@ -571,7 +534,8 @@ rule download_fasta_files:
         ensembl_release = lambda wildcards: get_subkey_from_config(config['genomes'], wildcards.id, 'ensembl_release'),  
         chm13_prefix = NCBI_FTP+'/genomes/all/GCF/009/914/755/GCF_009914755.1_T2T-CHM13v2.0/GCF_009914755.1_T2T-CHM13v2.0',
         oc3_prefix = NCBI_FTP+'/genomes/all/GCF/009/806/435/GCF_009806435.1_UM_NZW_1.0/GCF_009806435.1_UM_NZW_1.0',
-        MFA1912RKSv2_prefix = NCBI_FTP+'/genomes/all/GCF/012/559/485/GCF_012559485.2_MFA1912RKSv2/GCF_012559485.2_MFA1912RKSv2'
+        MFA1912RKSv2_prefix = NCBI_FTP+'/genomes/all/GCF/012/559/485/GCF_012559485.2_MFA1912RKSv2/GCF_012559485.2_MFA1912RKSv2',
+        Vero_WHO_prefix = NCBI_FTP+'/genomes/all/GCF/015/252/025/GCF_015252025.1_Vero_WHO_p1.0/GCF_015252025.1_Vero_WHO_p1.0'
     shell:
         """
         if [ {params.ensembl_release} == "None" ]; then
@@ -579,7 +543,7 @@ rule download_fasta_files:
                 mkdir -p {output.dir} \
                     && wget -O {output.dir}/assembly_report.txt {params.chm13_prefix}_assembly_report.txt \
                     && wget -O {output.dir}/genome.fa.gz {params.chm13_prefix}_genomic.fna.gz \
-                    && scripts/split_fasta.sh {output.dir}/genome.fa.gz {output.dir} \
+                    && workflow/scripts/split_fasta.sh {output.dir}/genome.fa.gz {output.dir} \
                     && rm -f {output.dir}/genome.fa.gz \
                     && grep '^# Assembly name: ' {output.dir}/assembly_report.txt \
                         | sed 's/# Assembly name: //g' > {output.version}
@@ -587,7 +551,7 @@ rule download_fasta_files:
                 mkdir -p {output} \
                      && wget -O {output.dir}/assembly_report.txt {params.oc3_prefix}_assembly_report.txt \
                      && wget -O {output.dir}/genome.fa.gz {params.oc3_prefix}_genomic.fna.gz \
-                     && scripts/split_fasta.sh {output.dir}/genome.fa.gz {output.dir} \
+                     && workflow/scripts/split_fasta.sh {output.dir}/genome.fa.gz {output.dir} \
                      && rm -f {output.dir}/genome.fa.gz \
                      && grep '^# Assembly name: ' {output.dir}/assembly_report.txt \
                         | sed 's/# Assembly name: //g' > {output.version}
@@ -595,7 +559,15 @@ rule download_fasta_files:
                 mkdir -p {output.dir} \
                      && wget -O {output.dir}/assembly_report.txt {params.MFA1912RKSv2_prefix}_assembly_report.txt \
                      && wget -O {output.dir}/genome.fa.gz {params.MFA1912RKSv2_prefix}_genomic.fna.gz \
-                     && scripts/split_fasta.sh {output.dir}/genome.fa.gz {output.dir} \
+                     && workflow/scripts/split_fasta.sh {output.dir}/genome.fa.gz {output.dir} \
+                     && rm -f {output.dir}/genome.fa.gz \
+                     && grep '^# Assembly name: ' {output.dir}/assembly_report.txt \
+                        | sed 's/# Assembly name: //g' > {output.version}
+            elif [ '{wildcards.id}' == 'Vero_WHO_p1.0' ]; then
+                mkdir -p {output.dir} \
+                     && wget -O {output.dir}/assembly_report.txt {params.Vero_WHO_prefix}_assembly_report.txt \
+                     && wget -O {output.dir}/genome.fa.gz {params.Vero_WHO_prefix}_genomic.fna.gz \
+                     && workflow/scripts/split_fasta.sh {output.dir}/genome.fa.gz {output.dir} \
                      && rm -f {output.dir}/genome.fa.gz \
                      && grep '^# Assembly name: ' {output.dir}/assembly_report.txt \
                         | sed 's/# Assembly name: //g' > {output.version}
@@ -921,7 +893,7 @@ rule geneLength:
             touch {output.tmp}
         else
             CHROMS=`grep -v '^#' {input.file} | cut -f1 | sort | uniq | awk '{{printf(\"%s,\", $1)}}' | sed 's/,$//g'`
-            python2 scripts/gtftools_RS.py --chroms ${{CHROMS}} -l {output.tmp} {input.file} \
+            python2 workflow/scripts/gtftools_RS.py --chroms ${{CHROMS}} -l {output.tmp} {input.file} \
                 && grep -w ^gene {output.tmp} > {output.file} \
                 && grep -vw ^gene {output.tmp} | sort -k1 -n >> {output.file} \
                 && gzip -c {output.file} > {output.gz}
@@ -1045,7 +1017,7 @@ rule rRNA_intervals:
         file = os.path.join(OUTDIR, '{id}', 'fasta/genome.rRNA_intervals')
     shell:
         """
-        scripts/rRNA_intervals.sh {input.sizes} {input.refseq} {input.ensembl} > {output.file}
+        workflow/scripts/rRNA_intervals.sh {input.sizes} {input.refseq} {input.ensembl} > {output.file}
         """
         
         
@@ -1075,7 +1047,7 @@ rule genome:
         if os.path.exists(output_file):
             os.remove(output_file)
 
-        if wildcards.id == 'MFA1912RKSv2' or wildcards.id == 'chm13':
+        if wildcards.id == 'MFA1912RKSv2' or wildcards.id == 'chm13' or wildcards.id == 'Vero_WHO_p1.0':
             alias = pd.read_csv(input_refseq, sep='\t')
             for index, row in alias.iterrows():
                 input_file = os.path.join(input_dir, row['Alias']+'.fa.gz')
@@ -1249,7 +1221,7 @@ rule gencode_utr_part2:
         ann = os.path.join(OUTDIR, '{id}', '3utr/gencode/gencode.3utr.annotation.txt'),
     shell:
         """
-        python scripts/concatenate-fasta-by-seqname.py {input.seg} > {output.fa}
+        python workflow/scripts/concatenate-fasta-by-seqname.py {input.seg} > {output.fa}
         
         grep ">" {output.fa} | tr -d ">" \
             | awk -v OFS="\t" '{{v=$0; gsub("\\\|", "\t", v); print $0, v}}' \
@@ -1376,30 +1348,46 @@ rule star_test:
 rule star:
     input:
         file = os.path.join(OUTDIR, '{id}', 'fasta/genome.fa'),
+        gtf = os.path.join(OUTDIR, '{id}', 'gtf/{db}/{db}.gtf')
     output:
-        (directory(os.path.join(OUTDIR, '{id}', 'star_{v}'))),
-        (os.path.join(OUTDIR, '{id}', 'star_{v}/SA')),
-        (os.path.join(OUTDIR, '{id}', 'star_{v}/SAindex')), 
-        (os.path.join(OUTDIR, '{id}', 'star_{v}/chrLength.txt')),
-        (os.path.join(OUTDIR, '{id}', 'star_{v}/chrNameLength.txt')),
-        (os.path.join(OUTDIR, '{id}', 'star_{v}/chrName.txt')),
-        (os.path.join(OUTDIR, '{id}', 'star_{v}/chrStart.txt')),
-        (os.path.join(OUTDIR, '{id}', 'star_{v}/Genome')),
-        (os.path.join(OUTDIR, '{id}', 'star_{v}/genomeParameters.txt')),
+        dir = (directory(os.path.join(OUTDIR, '{id}', 'star_{v}/{db}'))),
+        SA = os.path.join(OUTDIR, '{id}', 'star_{v}/{db}/SA'),
+        SAindex = os.path.join(OUTDIR, '{id}', 'star_{v}/{db}/SAindex'),
+        chrLength = os.path.join(OUTDIR, '{id}', 'star_{v}/{db}/chrLength.txt'),
+        chrNameLength = os.path.join(OUTDIR, '{id}', 'star_{v}/{db}/chrNameLength.txt'),
+        chrName = os.path.join(OUTDIR, '{id}', 'star_{v}/{db}/chrName.txt'),
+        chrStart = os.path.join(OUTDIR, '{id}', 'star_{v}/{db}/chrStart.txt'),
+        Genome = os.path.join(OUTDIR, '{id}', 'star_{v}/{db}/Genome'),
+        genomeParameters = os.path.join(OUTDIR, '{id}', 'star_{v}/{db}/genomeParameters.txt'),
     params:
-        tmp = os.path.join(OUTDIR, '{id}', 'tmp_star_{v}'),
+        tmp = os.path.join(OUTDIR, '{id}', 'tmp_star_{v}_{db}'),
         image = lambda wildcards: get_star_image(wildcards.v)
     threads: config['star_threads']
     resources:
         mem_mb = config['star_mem_mb']
     shell:  
         """
-	rm -rf {params.tmp}
-        singularity run {params.image} STAR --runThreadN {threads} \
-            --runMode genomeGenerate \
-            --genomeDir {output[0]} \
-            --genomeFastaFiles {input.file} \
-            --outTmpDir {params.tmp}
+        file_size=$(stat -c "%s" {input.gtf})
+
+        if [ ${{file_size}} -eq 0 ]; then
+            mkdir -p {output.dir}
+            touch {output.SA}
+            touch {output.SAindex}
+            touch {output.chrLength}
+            touch {output.chrNameLength}
+            touch {output.chrName}
+            touch {output.chrStart}
+            touch {output.Genome}
+            touch {output.genomeParameters}
+        else
+             rm -rf {params.tmp}
+             singularity run {params.image} STAR --runThreadN {threads} \
+                --runMode genomeGenerate \
+                --genomeDir {output.dir} \
+                --genomeFastaFiles {input.file} \
+                --outTmpDir {params.tmp} \
+                --sjdbGTFfile {input.gtf}
+        fi
         """
 
 
@@ -1420,26 +1408,23 @@ mkdir -p ${OUTDIR}/bwa && cp ${OUTDIR}/genome.fa ${OUTDIR}/bwa/ && cd bwa && ml 
 # ----------------------------------------------------------------------------
 """
 Collect some statistics
-
-        #refFlat = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.refFlat'), id=config['ids'], db=DB, fmt='gtf'),
-        #loci = expand(os.path.join(OUTDIR, '{id}', 'gtf', '{db}', '{db}.loci.txt'), id=config['ids'], db=DB, fmt='gtf'),
-        #sorted = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.sorted.{fmt}.gz'), id=config['ids'], db=DB, fmt='gtf'),
-        #sorted_tbi = expand(os.path.join(OUTDIR, '{id}', '{fmt}', '{db}', '{db}.sorted.{fmt}.gz.tbi'), id=config['ids'], db=DB, fmt='gtf'),
-
 """
 rule stats:
     input:
         version = expand(os.path.join(OUTDIR, '{id}', 'fasta/genome.version'), id=config['ids']),
         chrom_size = expand(os.path.join(OUTDIR, '{id}', 'fasta/genome.chrom.sizes'), id=config['ids']),
         rRNA_invervals = expand(os.path.join(OUTDIR, '{id}', 'fasta/genome.rRNA_intervals'), id=config['ids']),
-        annot = expand(os.path.join(OUTDIR, '{id}', 'gtf', '{db}', '{db}.exons.annot'), id=config['ids'], db=DB, fmt='gtf'),
+        annot = [os.path.join(OUTDIR, id, 'gtf', db, f'{db}.exons.annot') for id in config['ids'] for db in get_dbs(id)]
     output:
+        dag = os.path.join(OUTDIR, 'rulegraph.png'),
         genome = os.path.join(OUTDIR, 'genome_stats.csv'),
         annotation = os.path.join(OUTDIR, 'annotation_stats.csv')
     params:
-        ids = config['ids']
+        ids = config['ids'],
+        dag = os.path.join('resources/rulegraph.png')
     run: 
         import csv
+        import numpy as np
         data = pd.DataFrame(index=params.ids)
         
         # Genome statistics
@@ -1495,6 +1480,7 @@ rule stats:
         # Numbers of genes
         files = input.annot
         for file_path in files:
+            print(file_path, file=sys.stderr)
             count = 0
             loc = 0
             genome_id = file_path.split('/')[1]
@@ -1511,9 +1497,15 @@ rule stats:
             df.loc[genome_id, col_name] = loc
 
         # Write table to file
+        df = df.fillna(0)
+        df = df.replace([np.inf, -np.inf], 0)
         df = df.astype(int)
         df.to_csv(output.annotation, mode='a', sep=',',
             index=True, header=True, quoting=csv.QUOTE_NONE)
+
+        # Copy graph file:
+        import shutil
+        shutil.copy(params.dag, output.dag)
 
 
 # ----------------------------------------------------------------------------
@@ -1522,8 +1514,3 @@ Snakemake Report
 by using the snakemake option --report
 """
 report: 'report/description.rst'
-
-# Add some useful Snakemake variables for the "report" to the config dict
-# so that they can be used in the file "workflow/report/description.rst"
-#config['TOTAL_NUMBER_OF_SAMPLES'] = len(sample_ids)
-

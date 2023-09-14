@@ -653,10 +653,15 @@ def chroms_interpreter(chroms_input):
 	chroms = []
 	for it in t:
 		if '-' in it:
-			start  = int(it.split('-')[0].strip())
-			end    = int(it.split('-')[1].strip())+1
-			irange = map(str,range(start,end))
-			chroms = chroms + irange
+			start  = it.split('-')[0].strip()
+			end    = it.split('-')[1].strip()
+                        if isinstance(start, int) and isinstance(end, int):
+                            start  = int(it.split('-')[0].strip())
+                            end    = int(it.split('-')[1].strip())+1
+                            irange = map(str,range(start,end))
+                            chroms = chroms + irange
+                        else:
+                            chroms = chroms + [it]
 		else:
 			chroms = chroms + [it]
 	return(chroms)	

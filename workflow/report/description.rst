@@ -32,6 +32,6 @@ Annotation data created for the following genomes.
 Workflow
 ********
 
-.. image:: ../resources/rulegraph.png
+.. image:: {{ snakemake.config['outdir'] }}/rulegraph.png
   :width: 400
   :alt: Alternative text
