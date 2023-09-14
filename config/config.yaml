@@ -2,7 +2,7 @@
 ids: ['hg38', 'chm13', 'mm39', 'mm10', 'mfa5', 'MFA1912RKSv2', 'rn6', 'rn7', 'ss11', 'oc2', 'Vero_WHO_p1.0']
 
 # Output directory. If several genomes are processed, then the output will be in subdirectories named by the elements of "ids"
-outdir: 'output_DB'
+outdir: 'output'
 
 # Specifications of the genomes. The required parameter 'id' is an internal label for the genome; it must be unique.
 genomes:
