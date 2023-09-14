@@ -104,7 +104,7 @@ Parameters to specify:
 - `outdir`: path to the output directory
 
 ```
-ids: ['hg38', 'chm13', 'mm39', 'mm10', 'mfa5', 'MFA1912RKSv2', 'rn6', 'rn7', 'ss11', 'oc2']
+ids: ['hg38', 'chm13', 'mm39', 'mm10', 'mfa5', 'MFA1912RKSv2', 'rn6', 'rn7', 'ss11', 'oc2', 'Vero_WHO_p1.0']
 
 outdir: 'output'
 ```
