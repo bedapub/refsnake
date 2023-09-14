@@ -32,10 +32,6 @@ Annotation data created for the following genomes.
 Workflow
 ********
 
-<<<<<<< HEAD:workflow/report/description.rst
 .. image:: {{ snakemake.config['outdir'] }}/rulegraph.png
-=======
-.. image:: ../resources/rulegraph.png
->>>>>>> main:report/description.rst
   :width: 400
   :alt: Alternative text
