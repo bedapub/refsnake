@@ -373,12 +373,12 @@ rule download_ncbi_annotation:
 
             wget -O {output.tmp} \
                 ${{ftp_prefix}}/${{acc}}_{params.ncbi_assembly_name}/${{acc}}_{params.ncbi_assembly_name}_genomic.gtf.gz \
-                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/%/g' \
+                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/percent/g' \
                     | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%26/\&/g' | gzip -c > {output.gtf}        
 
             wget -O {output.tmp} \
                 ${{ftp_prefix}}/${{acc}}_{params.ncbi_assembly_name}/${{acc}}_{params.ncbi_assembly_name}_genomic.gff.gz \
-                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/%/g' \
+                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/percent/g' \
                     | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%26/\&/g' | gzip -c > {output.gff}        
         fi
         """
@@ -416,22 +416,22 @@ rule download_ensembl_annotation:
         else        
             wget -O {output.tmp} \
                 {ENSEMBL_FTP}/release-{params.ensembl_release}/gtf/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.gtf.gz \
-                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/%/g' \
+                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/percent/g' \
                     | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%26/\&/g' | gzip -c > {output.gtf}
 
             wget -O {output.tmp} \
                 {ENSEMBL_FTP}/release-{params.ensembl_release}/gff3/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.gff3.gz \
-                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/%/g' \
+                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/percent/g' \
                     | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%26/\&/g' | gzip -c > {output.gff} 
                 
             wget -O {output.tmp} \
                 {ENSEMBL_FTP}/release-{params.ensembl_release}/gtf/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.chr.gtf.gz \
-                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/%/g' \
+                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/percent/g' \
                     | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%26/\&/g' | gzip -c > {output.gtf_chr}
 
             wget -O {output.tmp} \
                 {ENSEMBL_FTP}/release-{params.ensembl_release}/gff3/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.chr.gff3.gz \
-                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/%/g' \
+                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/percent/g' \
                     | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%26/\&/g' | gzip -c > {output.gff_chr} 
         fi
         """
@@ -492,12 +492,12 @@ rule download_gencode_annotation:
         else 
             wget -O {output.tmp} \
                 {GENCODE_FTP}/{params.gencode_org}/release_{params.gencode_release}/gencode.v{params.gencode_release}.annotation.gtf.gz \
-                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/%/g' \
+                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/percent/g' \
                     | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%26/\&/g' | gzip -c > {output.gtf}
 
             wget -O {output.tmp} \
                 {GENCODE_FTP}/{params.gencode_org}/release_{params.gencode_release}/gencode.v{params.gencode_release}.annotation.gff3.gz \
-                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/%/g' \
+                && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/percent/g' \
                     | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%26/\&/g' | gzip -c > {output.gff}
         fi                
         """                
