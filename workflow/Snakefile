@@ -49,7 +49,8 @@ configfile: 'config.yaml'
 # ------------------------------------------------------------------------------
 # General variables
 NCBI_FTP = 'http://ftp.ncbi.nih.gov'
-ENSEMBL_FTP = 'http://ftp.ensembl.org/pub'
+ENSEMBL_FTP = 'ftp://ftp.ensembl.org/pub'
+ENSEMBL_HTTP = 'http://ftp.ensembl.org/pub'     # for unknown reasons: ftp does not work well anymore for gtf/gff3 files
 GENCODE_FTP = 'http://ftp.ebi.ac.uk/pub/databases/gencode'
 OUTDIR = config['outdir']
 MAX_LINES = 0 # maximum number of lines from a gtf/gff3 file to process, if set to 0 then all lines are process. this is only used for debugging/development purposes
@@ -415,22 +416,22 @@ rule download_ensembl_annotation:
             touch {output.tmp}
         else        
             wget -O {output.tmp} \
-                {ENSEMBL_FTP}/release-{params.ensembl_release}/gtf/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.gtf.gz \
+                {ENSEMBL_HTTP}/release-{params.ensembl_release}/gtf/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.gtf.gz \
                 && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/percent/g' \
                     | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%26/\&/g' | gzip -c > {output.gtf}
 
             wget -O {output.tmp} \
-                {ENSEMBL_FTP}/release-{params.ensembl_release}/gff3/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.gff3.gz \
+                {ENSEMBL_HTTP}/release-{params.ensembl_release}/gff3/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.gff3.gz \
                 && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/percent/g' \
                     | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%26/\&/g' | gzip -c > {output.gff} 
                 
             wget -O {output.tmp} \
-                {ENSEMBL_FTP}/release-{params.ensembl_release}/gtf/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.chr.gtf.gz \
+                {ENSEMBL_HTTP}/release-{params.ensembl_release}/gtf/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.chr.gtf.gz \
                 && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/percent/g' \
                     | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%26/\&/g' | gzip -c > {output.gtf_chr}
 
             wget -O {output.tmp} \
-                {ENSEMBL_FTP}/release-{params.ensembl_release}/gff3/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.chr.gff3.gz \
+                {ENSEMBL_HTTP}/release-{params.ensembl_release}/gff3/{params.ensembl_org}/{params.ensembl_name}.{params.ensembl_release}.chr.gff3.gz \
                 && gunzip -c {output.tmp} | sed 's/%2C/,/g' | sed 's/%25/percent/g' \
                     | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%26/\&/g' | gzip -c > {output.gff_chr} 
         fi
@@ -587,7 +588,7 @@ rule download_fasta_files:
             echo '{params.ensembl_name}' > {output.version}
         fi
         """
-
+# output/hg38/download/ftp.ensembl.org/pub/release-110/fasta/homo_sapiens/dna
 
 # ------------------------------------------------------------------------------
 """
@@ -1077,7 +1078,7 @@ rule genome:
                                 if len(row) == 1:
                                     output_name = alias.iloc[row.index[0], alias.columns.get_loc('Name')]
                                 else:
-                                    print('contig/chromsome '+name+' not found in alias file', file = sys.stderr)
+                                    print('contig/chromosome '+name+' not found in alias file', file = sys.stderr)
                                     output_name = name
                                 output.write('>'+output_name+'\n')
                                 
