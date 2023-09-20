@@ -48,9 +48,9 @@ configfile: 'config.yaml'
 
 # ------------------------------------------------------------------------------
 # General variables
-NCBI_FTP = 'ftp://ftp.ncbi.nih.gov'
-ENSEMBL_FTP = 'ftp://ftp.ensembl.org/pub'
-GENCODE_FTP = 'ftp://ftp.ebi.ac.uk/pub/databases/gencode'
+NCBI_FTP = 'http://ftp.ncbi.nih.gov'
+ENSEMBL_FTP = 'http://ftp.ensembl.org/pub'
+GENCODE_FTP = 'http://ftp.ebi.ac.uk/pub/databases/gencode'
 OUTDIR = config['outdir']
 MAX_LINES = 0 # maximum number of lines from a gtf/gff3 file to process, if set to 0 then all lines are process. this is only used for debugging/development purposes
 MISSING_VALUE = 'None'
